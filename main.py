@@ -1,7 +1,12 @@
 import asyncio
-import getpass
+import os
 import aiohttp
+from dotenv import load_dotenv
 from api import AllegroApiClient
+
+load_dotenv()
+
+QXLSESSID = os.getenv("QXLSESSID")
 
 def tri_words(text: str) -> str:
     words = text.strip().split()
@@ -10,8 +15,8 @@ def tri_words(text: str) -> str:
 
 async def main():
     print("=== Allegro CLI ===")
-#    qx_session_id = getpass.getpass("Wprowadź QXLSESSID (nie będzie widoczny): ")
 
+    qx_session_id = QXLSESSID
     async with aiohttp.ClientSession() as session:
         client = AllegroApiClient(session=session, cookie=qx_session_id)
 
