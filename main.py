@@ -27,26 +27,21 @@ async def main():
     async with aiohttp.ClientSession() as session:
         client = AllegroApiClient(session=session, cookie=qx_session_id)
 
-        try:
-            orders = await client.get_orders()
-            orders_list = orders.orders  # <-- to jest property, nie metoda
+        orders = await client.get_orders()
+        orders_list = orders.orders  # <-- to jest property, nie metoda
 
-            for order in orders_list:
-                item_text = ""
-                for offer in order.offers:
-                    item_text += (
-                        f"({tri_words(offer.title)} -"
-                        f" {offer.unit_price}"
-                        f" {offer.price_currency}) "
-                    )
-                item_text += f"\nData zamówienia: {order.order_date}"
-                item_text += f"\nŁączny koszt: {order.total_cost}"
-                item_text += "\n" + "-" * 40
-                print(item_text)
-
-        except Exception as e:
-            print(f"\n❌ Błąd: {e}")
-
+        for order in orders_list:
+            item_text = ""
+            for offer in order.offers:
+                item_text += (
+                    f"({tri_words(offer.title)} -"
+                    f" {offer.unit_price}"
+                    f" {offer.price_currency}) "
+                )
+            item_text += f"\nData zamówienia: {order.order_date}"
+            item_text += f"\nŁączny koszt: {order.total_cost}"
+            item_text += "\n" + "-" * 40
+            print(item_text)
 
 if __name__ == "__main__":
     asyncio.run(main())
