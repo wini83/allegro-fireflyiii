@@ -17,14 +17,14 @@ async def main():
 
         try:
             orders = await client.get_orders()
-            orders_list = orders.get_orders  # <-- to jest property, nie metoda
+            orders_list = orders.orders  # <-- to jest property, nie metoda
 
             for order in orders_list:
                 item_text = ""
-                for offer in order.get_offers:
-                    item_text += f"({tri_words(offer.get_title)} - {offer.get_unit_price} {offer.get_price_currency}) "
-                item_text += f"\nData zamówienia: {order.get_orde_date}"
-                item_text += f"\nŁączny koszt: {order.get_total_cost}"
+                for offer in order.offers:
+                    item_text += f"({tri_words(offer.title)} - {offer.unit_price} {offer.price_currency}) "
+                item_text += f"\nData zamówienia: {order.order_date}"
+                item_text += f"\nŁączny koszt: {order.total_cost}"
                 item_text += "\n" + "-" * 40
                 print(item_text)
 
