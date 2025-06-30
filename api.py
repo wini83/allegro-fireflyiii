@@ -53,7 +53,7 @@ class AllegroApiClient:
 
 
 class ApiWrapper:
-    """Helper class"""
+    """HTTP request helper."""
 
     def __init__(self, session: aiohttp.ClientSession):
         self._session = session
@@ -78,12 +78,12 @@ class ApiWrapper:
         self,
         method: str,
         url: str,
-        data: Any | None = None,
-        headers: dict | None = None,
-        auth: Any | None = None,
+        **request_kwargs: Any,
     ) -> Any:
         """Execute HTTP request and return response JSON."""
-        headers = headers or {}
+        headers = request_kwargs.pop("headers", None) or {}
+        data = request_kwargs.pop("data", None)
+        auth = request_kwargs.pop("auth", None)
         try:
             async with async_timeout.timeout(TIMEOUT):
                 async with self._session.request(
@@ -92,6 +92,7 @@ class ApiWrapper:
                     headers=headers,
                     data=data,
                     auth=auth,
+                    **request_kwargs,
                 ) as response:
                     return await response.json()
         except asyncio.TimeoutError as exc:

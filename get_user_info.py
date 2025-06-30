@@ -1,4 +1,4 @@
-from typing import Any
+"""Data structures for the ``get_user_info`` call."""
 
 
 class GetUserInfoResult:
@@ -9,5 +9,10 @@ class GetUserInfoResult:
         self._login = items["accounts"]["allegro"]["login"]
 
     @property
-    def get_login(self):
+    def get_login(self) -> str:
+        """Return user's login."""
         return self._login
+
+    def as_dict(self) -> dict[str, str]:
+        """Return result as dictionary."""
+        return {"login": self._login}
