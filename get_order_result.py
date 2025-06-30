@@ -1,3 +1,5 @@
+"""Data structures for the ``get_orders`` API call."""
+
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -15,6 +17,10 @@ class GetOrdersResult:
     def get_order(self, item: Any):
         """Returns single order"""
         return Order(item["groupId"], item["myorders"][0])
+
+    def as_list(self) -> list["Order"]:
+        """Return orders as list."""
+        return self.orders
 
 
 class Order:
@@ -85,6 +91,7 @@ class Offer:
 
     @staticmethod
     def from_dict(item: dict) -> "Offer":
+        """Create :class:`Offer` from API response ``item``."""
         return Offer(
             item["id"],
             item["title"],
