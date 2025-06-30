@@ -1,3 +1,4 @@
+"""main module"""
 import asyncio
 import os
 
@@ -30,7 +31,9 @@ async def main():
             for order in orders_list:
                 item_text = ""
                 for offer in order.offers:
-                    item_text += f"({tri_words(offer.title)} - {offer.unit_price} {offer.price_currency}) "
+                    item_text += (f"({tri_words(offer.title)} -"
+                                  f" {offer.unit_price}"
+                                  f" {offer.price_currency}) ")
                 item_text += f"\nData zamówienia: {order.order_date}"
                 item_text += f"\nŁączny koszt: {order.total_cost}"
                 item_text += "\n" + "-" * 40
