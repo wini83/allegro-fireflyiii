@@ -1,4 +1,5 @@
 """Constants for allegro_integration."""
+
 # Base component constants
 NAME = "Allegro buyer"
 DOMAIN = "allegro"

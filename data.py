@@ -1,6 +1,8 @@
 import logging
+
 from get_order_result import Order
-from .api import AllegroApiClient
+
+from .api import AllegroApiClient  # type: ignore[import]
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -26,9 +28,7 @@ class AllegroData:
         try:
             get_orders_response = await api.get_orders()
 
-            not_delivered = list[
-                Order
-            ](
+            not_delivered = list[Order](
                 filter(
                     lambda order: order.status.current_status != "DELIVERED"
                     and order.status.current_status != "RETURNED",
@@ -36,28 +36,21 @@ class AllegroData:
                 )
             )
 
-            waiting_for_pickup = list[
-                Order
-            ](
+            waiting_for_pickup = list[Order](
                 filter(
-                    lambda order: order.status.current_status
-                    == "AVAILABLE_FOR_PICKUP",
+                    lambda order: order.status.current_status == "AVAILABLE_FOR_PICKUP",
                     get_orders_response.orders,
                 )
             )
 
-            in_delivery = list[
-                Order
-            ](
+            in_delivery = list[Order](
                 filter(
                     lambda order: order.status.current_status == "IN_DELIVERY",
                     get_orders_response.orders,
                 )
             )
 
-            in_transit = list[
-                Order
-            ](
+            in_transit = list[Order](
                 filter(
                     lambda order: order.status.current_status == "IN_TRANSIT",
                     get_orders_response.orders,

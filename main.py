@@ -1,12 +1,15 @@
 import asyncio
 import os
-import aiohttp
-from dotenv import load_dotenv
+
+import aiohttp  # type: ignore[import]
+from dotenv import load_dotenv  # type: ignore[import]
+
 from api import AllegroApiClient
 
 load_dotenv()
 
 QXLSESSID = os.getenv("QXLSESSID")
+
 
 def tri_words(text: str) -> str:
     words = text.strip().split()
@@ -35,6 +38,7 @@ async def main():
 
         except Exception as e:
             print(f"\n❌ Błąd: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
