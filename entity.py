@@ -1,8 +1,12 @@
 """AllegroEntity class"""
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_USERNAME
-from .data import AllegroData
+# isort: off
+from homeassistant.helpers.update_coordinator import CoordinatorEntity  # type: ignore[import]
+
+# isort: on
+
+from .const import CONF_USERNAME  # type: ignore[import]
+from .data import AllegroData  # type: ignore[import]
 
 
 class AllegroEntity(CoordinatorEntity):
