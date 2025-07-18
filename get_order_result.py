@@ -1,22 +1,54 @@
 """Data structures for the ``get_orders`` API call."""
+import re
+from collections import defaultdict
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, List
+from datetime import datetime, timezone, timedelta
 
+from fireflyiii_enricher_core.firefly_client import SimplifiedItem
+
+import hashlib
+
+def short_id(id_str: str, length: int = 8) -> str:
+    return hashlib.sha1(id_str.encode()).hexdigest()[:length]
+
+def get_order(item: Any):
+    """Returns single order"""
+    return Order(item["groupId"], item["myorders"][0])
+
+
+@dataclass()
+class SimplifiedPayment(SimplifiedItem):
+    details:str
+
+    def compare(self, other) ->bool:
+        if not isinstance(other, SimplifiedItem):
+            return NotImplemented
+        if not super().compare_amount(other.amount):
+            return False
+        latest_acceptable_date = self.date + timedelta(days=6)
+        return self.date <= other.date <= latest_acceptable_date
+
+    @classmethod
+    def from_payments(cls,payments:List["Payment"])->List["SimplifiedPayment"]:
+        result:List["SimplifiedPayment"] = []
+        for payment in payments:
+            date = payment.orders[0].order_date.date()
+            amount = payment.amount
+            offer_text = '\n'.join(f"{order.print_offers()}" for order in payment.orders)
+            result.append(cls(date=date, amount= amount, details=offer_text))
+        return result
 
 class GetOrdersResult:
     """Result of get_orders method"""
 
     def __init__(self, items: dict) -> None:
         """Init method"""
-        self.orders = [
-            Order(group["groupId"], group["myorders"][0])
-            for group in items["orderGroups"]
-        ]
-
-    def get_order(self, item: Any):
-        """Returns single order"""
-        return Order(item["groupId"], item["myorders"][0])
+        self.orders:List[Order] = []
+        for group in items["orderGroups"]:
+            self.orders.append(Order(group["groupId"], group["myorders"][0]))
+        self.payments:List[Payment] = Payment.from_orders(self.orders)
 
     def as_list(self) -> list["Order"]:
         """Return orders as list."""
@@ -31,51 +63,25 @@ class Order:
         self.order_id = order_id
         self.seller = items["seller"]["login"]
         self.offers = [Offer.from_dict(o) for o in items["offers"]]
-        self.order_date = items["orderDate"]
+        self._order_date = items["orderDate"]
         self.total_cost = items["totalCost"]
-        self.status = Status(items["status"]["primary"]["status"])
-        delivery = items["delivery"]
-        waybills_data = delivery["waybillsData"]
-
-        if "waybills" in waybills_data:
-            pickup = waybills_data["waybills"][0].get("pickupCode", {})
-
-            self.delivery = Delivery(
-                delivery["name"],
-                waybills_data["waybills"][0]["carrier"]["url"],
-                pickup.get("code"),
-                pickup.get("receiverPhoneNumber"),
-                pickup.get("qrCode"),
-            )
-        else:
-            self.delivery = Delivery(delivery["name"], None, None, None, None)
-
-    def get_formatted_address(self, items: dict):
-        """Returns formatted delivery address"""
-        return f"{items['street']} {items['code']} {items['city']}"
-
-    def get_offer(self, item: Any):
-        """Returns single offer"""
-        return Offer.from_dict(item)
+        self.payment_amount = items["payment"]['amount']
+        self.payment_id = items["payment"]["id"]
 
 
-@dataclass(slots=True)
-class Status:
-    """Order status"""
 
-    current_status: str
+    def print_offers(self) -> str:
+        return '\n'.join(
+            f"{offer.get_simplified_title()} ({offer.unit_price} {offer.price_currency})"
+            for offer in self.offers
+        )
 
-
-@dataclass(slots=True)
-class Delivery:
-    """Delivery info"""
-
-    name: str
-    url: Optional[str]
-    pickup_code: Optional[str]
-    receiver_phone_number: Optional[str]
-    qr_code: Optional[str]
-
+    @property
+    def order_date(self) -> datetime:
+        # Usuń 'Z' i dodaj strefę czasową UTC
+        if self._order_date.endswith('Z'):
+            return datetime.fromisoformat(self._order_date[:-1]).replace(tzinfo=timezone.utc)
+        return datetime.fromisoformat(self._order_date)
 
 @dataclass(slots=True)
 class Offer:
@@ -101,3 +107,71 @@ class Offer:
             int(item["quantity"]),
             item["imageUrl"],
         )
+
+    def get_simplified_title(self) -> str:
+        def format_word(title_word: str) -> str:
+            return '-'.join(
+                w.capitalize() if len(w) > 2 else w.lower()
+                for w in title_word.split('-')
+            )
+
+        clean = re.sub(r'[^\w\s\-]', '', self.title or "", flags=re.UNICODE)
+
+        words = clean.split()
+        result = []
+        total_length = 0
+
+        for word in words:
+            formatted = format_word(word)
+            extra = len(formatted) + (1 if result else 0)
+
+            if len(result) < 3 and total_length + extra <= 32:
+                result.append(formatted)
+                total_length += extra
+            else:
+                break
+
+        return ' '.join(result)
+
+
+@dataclass()
+class Payment:
+    payment_id: str
+    orders: List["Order"]
+    tolerance: float = 0.01
+
+    @property
+    def sum_total_cost(self) -> float:
+        return sum(float(order.total_cost['amount']) for order in self.orders)
+
+    @property
+    def amount(self) -> float:
+        if not self.orders:
+            return 0.0
+        return float(self.orders[0].payment_amount['amount'])
+
+    @property
+    def is_balanced(self) -> bool:
+        """Czy suma wartości zamówień zgadza się z kwotą płatności (z tolerancją)."""
+        return abs(self.amount - self.sum_total_cost) <= self.tolerance
+
+
+    def __str__(self) -> str:
+        return f"Payment {short_id(self.payment_id)}: {len(self.orders)} orders, {self.amount:.2f} total, balanced: {self.is_balanced}"
+
+    def __repr__(self) -> str:
+        return f"Payment {short_id(self.payment_id)}: {len(self.orders)} orders, {self.amount:.2f} total, balanced: {self.is_balanced}"
+
+    @classmethod
+    def from_orders(cls, orders: List["Order"]) -> List["Payment"]:
+        """Grupuje zamówienia po `payment_id` i tworzy obiekty Payment."""
+        grouped = defaultdict(list)
+
+        for order in orders:
+            grouped[order.payment_id].append(order)
+
+        payments = [
+            cls(payment_id=pid, orders=group)
+            for pid, group in grouped.items()
+        ]
+        return payments
