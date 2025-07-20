@@ -56,7 +56,8 @@ class TransactionProcessor:
                 print(f"      📝 Szczegóły: {details}")
                 choice = (
                     input(
-                        "      ❓ Czy chcesz zaktualizować opis w Firefly na podstawie tego wpisu? (t/n/q): "
+                        "      ❓ Czy chcesz zaktualizować opis w "
+                        "Firefly na podstawie tego wpisu? (t/n/q): "
                     )
                     .strip()
                     .lower()

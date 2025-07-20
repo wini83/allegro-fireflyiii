@@ -74,7 +74,8 @@ class Order:
 
     def print_offers(self) -> str:
         return "\n".join(
-            f"{offer.get_simplified_title()} ({offer.unit_price} {offer.price_currency})"
+            f"{offer.get_simplified_title()} ({offer.unit_price} "
+            f"{offer.price_currency})"
             for offer in self.offers
         )
 
@@ -161,10 +162,13 @@ class Payment:
         return abs(self.amount - self.sum_total_cost) <= self.tolerance
 
     def __str__(self) -> str:
-        return f"Payment {short_id(self.payment_id)}: {len(self.orders)} orders, {self.amount:.2f} total, balanced: {self.is_balanced}"
+        return (f"Payment {short_id(self.payment_id)}: "
+                f"{len(self.orders)} orders, {self.amount:.2f} "
+                f"total, balanced: {self.is_balanced}")
 
     def __repr__(self) -> str:
-        return f"Payment {short_id(self.payment_id)}: {len(self.orders)} orders, {self.amount:.2f} total, balanced: {self.is_balanced}"
+        return (f"Payment {short_id(self.payment_id)}: {len(self.orders)} "
+                f"orders, {self.amount:.2f} total, balanced: {self.is_balanced}")
 
     @classmethod
     def from_orders(cls, orders: List["Order"]) -> List["Payment"]:
