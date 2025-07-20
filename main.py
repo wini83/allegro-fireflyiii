@@ -29,6 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 async def main():
     """Run simple CLI example."""
     print("=== Allegro CLI ===")
