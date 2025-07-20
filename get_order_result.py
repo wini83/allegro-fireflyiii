@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, List
+from typing import List
 
 from fireflyiii_enricher_core.firefly_client import SimplifiedItem
 
@@ -14,18 +14,11 @@ def short_id(id_str: str, length: int = 8) -> str:
     return hashlib.sha1(id_str.encode()).hexdigest()[:length]
 
 
-def get_order(item: Any):
-    """Returns single order"""
-    return Order(item["groupId"], item["myorders"][0])
-
-
 @dataclass()
 class SimplifiedPayment(SimplifiedItem):
     details: str
 
-    def compare(self, other) -> bool:
-        if not isinstance(other, SimplifiedItem):
-            return NotImplemented
+    def compare(self, other:SimplifiedItem) -> bool:
         if not super().compare_amount(other.amount):
             return False
         latest_acceptable_date = self.date + timedelta(days=6)
@@ -124,7 +117,7 @@ class Offer:
         clean = re.sub(r"[^\w\s\-]", "", self.title or "", flags=re.UNICODE)
 
         words = clean.split()
-        result = []
+        result:List[str] = []
         total_length = 0
 
         for word in words:
@@ -162,13 +155,17 @@ class Payment:
         return abs(self.amount - self.sum_total_cost) <= self.tolerance
 
     def __str__(self) -> str:
-        return (f"Payment {short_id(self.payment_id)}: "
-                f"{len(self.orders)} orders, {self.amount:.2f} "
-                f"total, balanced: {self.is_balanced}")
+        return (
+            f"Payment {short_id(self.payment_id)}: "
+            f"{len(self.orders)} orders, {self.amount:.2f} "
+            f"total, balanced: {self.is_balanced}"
+        )
 
     def __repr__(self) -> str:
-        return (f"Payment {short_id(self.payment_id)}: {len(self.orders)} "
-                f"orders, {self.amount:.2f} total, balanced: {self.is_balanced}")
+        return (
+            f"Payment {short_id(self.payment_id)}: {len(self.orders)} "
+            f"orders, {self.amount:.2f} total, balanced: {self.is_balanced}"
+        )
 
     @classmethod
     def from_orders(cls, orders: List["Order"]) -> List["Payment"]:

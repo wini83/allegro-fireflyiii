@@ -46,6 +46,6 @@ class TransactionProcessorGUI:
                 results.append(TxMatchResult(tx=tx, matches=matches))
         return results
 
-    def apply_match(self, tx_id: int, details: str):
+    def apply_match(self, tx_id: int, details: str)->None:
         self.firefly_client.update_transaction_notes(tx_id, details)
         self.firefly_client.add_tag_to_transaction(tx_id, self.tag)

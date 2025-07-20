@@ -23,7 +23,7 @@ class TransactionProcessor:
         self.orders = orders
         self.tag = tag
 
-    def process(self, filter_text: str, exact_match: bool = True):
+    def process(self, filter_text: str, exact_match: bool = True)-> None:
         raw = self.firefly_client.fetch_transactions()
         single = filter_single_part(raw)
         uncategorized = filter_without_category(single)
