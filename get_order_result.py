@@ -1,17 +1,18 @@
 """Data structures for the ``get_orders`` API call."""
+
+import hashlib
 import re
 from collections import defaultdict
-
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Any, List
-from datetime import datetime, timezone, timedelta
 
 from fireflyiii_enricher_core.firefly_client import SimplifiedItem
 
-import hashlib
 
 def short_id(id_str: str, length: int = 8) -> str:
     return hashlib.sha1(id_str.encode()).hexdigest()[:length]
+
 
 def get_order(item: Any):
     """Returns single order"""
@@ -20,9 +21,9 @@ def get_order(item: Any):
 
 @dataclass()
 class SimplifiedPayment(SimplifiedItem):
-    details:str
+    details: str
 
-    def compare(self, other) ->bool:
+    def compare(self, other) -> bool:
         if not isinstance(other, SimplifiedItem):
             return NotImplemented
         if not super().compare_amount(other.amount):
@@ -31,24 +32,27 @@ class SimplifiedPayment(SimplifiedItem):
         return self.date <= other.date <= latest_acceptable_date
 
     @classmethod
-    def from_payments(cls,payments:List["Payment"])->List["SimplifiedPayment"]:
-        result:List["SimplifiedPayment"] = []
+    def from_payments(cls, payments: List["Payment"]) -> List["SimplifiedPayment"]:
+        result: List["SimplifiedPayment"] = []
         for payment in payments:
             date = payment.orders[0].order_date.date()
             amount = payment.amount
-            offer_text = '\n'.join(f"{order.print_offers()}" for order in payment.orders)
-            result.append(cls(date=date, amount= amount, details=offer_text))
+            offer_text = "\n".join(
+                f"{order.print_offers()}" for order in payment.orders
+            )
+            result.append(cls(date=date, amount=amount, details=offer_text))
         return result
+
 
 class GetOrdersResult:
     """Result of get_orders method"""
 
     def __init__(self, items: dict) -> None:
         """Init method"""
-        self.orders:List[Order] = []
+        self.orders: List[Order] = []
         for group in items["orderGroups"]:
             self.orders.append(Order(group["groupId"], group["myorders"][0]))
-        self.payments:List[Payment] = Payment.from_orders(self.orders)
+        self.payments: List[Payment] = Payment.from_orders(self.orders)
 
     def as_list(self) -> list["Order"]:
         """Return orders as list."""
@@ -65,13 +69,11 @@ class Order:
         self.offers = [Offer.from_dict(o) for o in items["offers"]]
         self._order_date = items["orderDate"]
         self.total_cost = items["totalCost"]
-        self.payment_amount = items["payment"]['amount']
+        self.payment_amount = items["payment"]["amount"]
         self.payment_id = items["payment"]["id"]
 
-
-
     def print_offers(self) -> str:
-        return '\n'.join(
+        return "\n".join(
             f"{offer.get_simplified_title()} ({offer.unit_price} {offer.price_currency})"
             for offer in self.offers
         )
@@ -79,9 +81,12 @@ class Order:
     @property
     def order_date(self) -> datetime:
         # Usuń 'Z' i dodaj strefę czasową UTC
-        if self._order_date.endswith('Z'):
-            return datetime.fromisoformat(self._order_date[:-1]).replace(tzinfo=timezone.utc)
+        if self._order_date.endswith("Z"):
+            return datetime.fromisoformat(self._order_date[:-1]).replace(
+                tzinfo=timezone.utc
+            )
         return datetime.fromisoformat(self._order_date)
+
 
 @dataclass(slots=True)
 class Offer:
@@ -110,12 +115,12 @@ class Offer:
 
     def get_simplified_title(self) -> str:
         def format_word(title_word: str) -> str:
-            return '-'.join(
+            return "-".join(
                 w.capitalize() if len(w) > 2 else w.lower()
-                for w in title_word.split('-')
+                for w in title_word.split("-")
             )
 
-        clean = re.sub(r'[^\w\s\-]', '', self.title or "", flags=re.UNICODE)
+        clean = re.sub(r"[^\w\s\-]", "", self.title or "", flags=re.UNICODE)
 
         words = clean.split()
         result = []
@@ -131,7 +136,7 @@ class Offer:
             else:
                 break
 
-        return ' '.join(result)
+        return " ".join(result)
 
 
 @dataclass()
@@ -142,19 +147,18 @@ class Payment:
 
     @property
     def sum_total_cost(self) -> float:
-        return sum(float(order.total_cost['amount']) for order in self.orders)
+        return sum(float(order.total_cost["amount"]) for order in self.orders)
 
     @property
     def amount(self) -> float:
         if not self.orders:
             return 0.0
-        return float(self.orders[0].payment_amount['amount'])
+        return float(self.orders[0].payment_amount["amount"])
 
     @property
     def is_balanced(self) -> bool:
         """Czy suma wartości zamówień zgadza się z kwotą płatności (z tolerancją)."""
         return abs(self.amount - self.sum_total_cost) <= self.tolerance
-
 
     def __str__(self) -> str:
         return f"Payment {short_id(self.payment_id)}: {len(self.orders)} orders, {self.amount:.2f} total, balanced: {self.is_balanced}"
@@ -170,8 +174,5 @@ class Payment:
         for order in orders:
             grouped[order.payment_id].append(order)
 
-        payments = [
-            cls(payment_id=pid, orders=group)
-            for pid, group in grouped.items()
-        ]
+        payments = [cls(payment_id=pid, orders=group) for pid, group in grouped.items()]
         return payments

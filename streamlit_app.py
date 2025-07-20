@@ -1,11 +1,12 @@
-import streamlit as st
 import asyncio
 import os
-from dotenv import load_dotenv
+
 import aiohttp
+import streamlit as st
+from dotenv import load_dotenv
+from fireflyiii_enricher_core.firefly_client import FireflyClient
 
 from api import AllegroApiClient
-from fireflyiii_enricher_core.firefly_client import FireflyClient
 from get_order_result import SimplifiedPayment
 from processor_gui import TransactionProcessorGUI
 
@@ -22,13 +23,16 @@ TAG = "allegro_done"
 
 print(f"{FIREFLY_URL}")
 
+
 @st.cache_data(show_spinner="Pobieranie zamówień z Allegro...")
 def get_orders():
     async def fetch():
         async with aiohttp.ClientSession() as session:
             client = AllegroApiClient(session=session, cookie=COOKIE)
             return await client.get_orders()
+
     return asyncio.run(fetch())
+
 
 # Pobierz dane
 if st.button("🔄 Pobierz zamówienia"):
@@ -49,8 +53,13 @@ if "payments" in st.session_state:
         for r in results:
             st.markdown(f"### 🧾 {r.tx.date} | {r.tx.amount} PLN | {r.tx.description}")
             for i, match in enumerate(r.matches):
-                with st.expander(f"Dopasowanie #{i+1} — {match.date} | {match.amount} PLN"):
+                with st.expander(
+                    f"Dopasowanie #{i + 1} — {match.date} | {match.amount} PLN"
+                ):
                     st.code(match.details)
-                    if st.button(f"✅ Zastosuj to dopasowanie (tx.id={r.tx.id})", key=f"{r.tx.id}-{i}"):
+                    if st.button(
+                        f"✅ Zastosuj to dopasowanie (tx.id={r.tx.id})",
+                        key=f"{r.tx.id}-{i}",
+                    ):
                         processor.apply_match(int(r.tx.id), match.details)
                         st.success("Zaktualizowano opis i tag w Firefly")
