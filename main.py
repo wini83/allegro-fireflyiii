@@ -41,7 +41,5 @@ async def main():
         payments_simplified = SimplifiedPayment.from_payments(order_result.payments)
         processor = TransactionProcessor(firefly, payments_simplified, "allegro_done")
         processor.process(DESCRIPTION_FILTER, exact_match=False)
-
-
 if __name__ == "__main__":
     asyncio.run(main())

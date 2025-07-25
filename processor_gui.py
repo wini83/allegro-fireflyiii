@@ -1,13 +1,9 @@
-from dataclasses import dataclass
 from typing import List
+from dataclasses import dataclass
 
+from fireflyiii_enricher_core.firefly_client import FireflyClient, simplify_transactions
 from fireflyiii_enricher_core.firefly_client import (
-    FireflyClient,
-    SimplifiedTx,
-    filter_by_description,
-    filter_single_part,
-    filter_without_category,
-    simplify_transactions,
+    filter_by_description, filter_single_part, filter_without_category, SimplifiedTx
 )
 from fireflyiii_enricher_core.matcher import TransactionMatcher
 
@@ -21,31 +17,30 @@ class TxMatchResult:
 
 
 class TransactionProcessorGUI:
-    def __init__(
-        self, firefly_client: FireflyClient, orders: List[SimplifiedPayment], tag: str
-    ):
+    def __init__(self, firefly_client: FireflyClient):
         self.firefly_client = firefly_client
-        self.orders = orders
-        self.tag = tag
 
-    def find_matches(
-        self, filter_text: str, exact_match: bool = True
-    ) -> List[TxMatchResult]:
+    def fetch_unmatched_transactions(self,
+                                     description_filter: str,
+                                     tag: str,
+                                     exact_match: bool = True) -> List[SimplifiedTx]:
         raw = self.firefly_client.fetch_transactions()
-        filtered = filter_by_description(
-            filter_without_category(filter_single_part(raw)), filter_text, exact_match
-        )
-        transactions = simplify_transactions(filtered)
-        results = []
+        non_categorized = filter_without_category(filter_single_part(raw))
+        allegro_txs = filter_by_description(non_categorized, description_filter, exact_match)
+        print(len(allegro_txs))
+        allegro_txs = simplify_transactions(allegro_txs)
+        #TODO:filter without Tag
+        return allegro_txs
 
-        for tx in transactions:
-            # if self.tag in tx.tags:
-            #    continue
-            matches = TransactionMatcher.match(tx, self.orders)
+    def match_transactions(self, firefly_tx: List[SimplifiedTx], allegro_orders: List[SimplifiedPayment]) -> List[
+        TxMatchResult]:
+        results = []
+        for tx in firefly_tx:
+            matches = TransactionMatcher.match(tx, allegro_orders)
             if matches:
                 results.append(TxMatchResult(tx=tx, matches=matches))
         return results
 
-    def apply_match(self, tx_id: int, details: str)->None:
+    def apply_match(self, tx_id: int, details: str):
         self.firefly_client.update_transaction_notes(tx_id, details)
         self.firefly_client.add_tag_to_transaction(tx_id, self.tag)
