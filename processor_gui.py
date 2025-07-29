@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, cast
 from dataclasses import dataclass
 
 from fireflyiii_enricher_core.firefly_client import FireflyClient, simplify_transactions
@@ -16,29 +16,34 @@ class TxMatchResult:
     matches: List[SimplifiedPayment]
 
 
+def match_transactions(firefly_tx: List[TxMatchResult], allegro_orders: List[SimplifiedPayment]) -> List[
+    TxMatchResult]:
+    for tx in firefly_tx:
+        matches = cast( list[SimplifiedPayment],TransactionMatcher.match(tx.tx, allegro_orders))
+        tx.matches =matches
+    return firefly_tx
+
+
 class TransactionProcessorGUI:
-    def __init__(self, firefly_client: FireflyClient):
+    def __init__(self, firefly_client: FireflyClient,tag:str):
         self.firefly_client = firefly_client
+        self.tag = tag
 
     def fetch_unmatched_transactions(self,
                                      description_filter: str,
-                                     tag: str,
-                                     exact_match: bool = True) -> List[SimplifiedTx]:
+                                     exact_match: bool = True) -> List[TxMatchResult]:
         raw = self.firefly_client.fetch_transactions()
         non_categorized = filter_without_category(filter_single_part(raw))
         allegro_txs = filter_by_description(non_categorized, description_filter, exact_match)
-        print(len(allegro_txs))
-        allegro_txs = simplify_transactions(allegro_txs)
-        #TODO:filter without Tag
-        return allegro_txs
 
-    def match_transactions(self, firefly_tx: List[SimplifiedTx], allegro_orders: List[SimplifiedPayment]) -> List[
-        TxMatchResult]:
-        results = []
-        for tx in firefly_tx:
-            matches = TransactionMatcher.match(tx, allegro_orders)
-            if matches:
-                results.append(TxMatchResult(tx=tx, matches=matches))
+        allegro_txs = simplify_transactions(allegro_txs)
+        allegro_not_processed: list[SimplifiedTx] = []
+        for tx in allegro_txs:
+            if self.tag not in tx.tags:
+                allegro_not_processed.append(tx)
+        results:List[TxMatchResult] = []
+        for tx in allegro_not_processed:
+            results.append(TxMatchResult(tx=tx, matches=[]))
         return results
 
     def apply_match(self, tx_id: int, details: str):
