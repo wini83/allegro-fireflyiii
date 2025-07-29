@@ -34,6 +34,17 @@
 
 - linting
 
+## v0.6.0 (2025-07-29)
+
+### Feat
+
+- **app**: ui experiments
+- **streamlit-app**: first working prototype
+
+### Fix
+
+- **processor**: fixed bug in processor logic
+
 ## v0.5.1 (2025-07-20)
 
 ### Fix
