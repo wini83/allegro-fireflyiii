@@ -34,6 +34,17 @@
 
 - linting
 
+## v0.6.1 (2025-08-01)
+
+### Fix
+
+- **auto**: experimets
+
+### Refactor
+
+- **worker**: loging imprevements
+- switch to sync API
+
 ## v0.6.0 (2025-07-29)
 
 ### Feat
