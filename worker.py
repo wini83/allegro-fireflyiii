@@ -67,7 +67,7 @@ def main() -> None:
         allegro = AllegroApiClient(os.getenv("QXLSESSID"), session)
         orders_data = allegro.get_orders()
     payments = SimplifiedPayment.from_payments(orders_data.payments)
-    logger.debug(f"Fetched {len(payments)} orders/payments from Allegro")
+    logger.info(f"Fetched {len(payments)} orders/payments from Allegro")
 
     # Match transactions
     logger.info("Matching transactions with payments")
@@ -97,8 +97,8 @@ def main() -> None:
         log_db.log_matched_transaction(txr, len(txr.matches), applied, details_list)
 
         # Summary
-        logger.info(f"Automatically applied to {auto_applied} transactions")
-        logger.info("===== Worker finished =====")
+    logger.info(f"Automatically applied to {auto_applied} transactions")
+    logger.info("===== Worker finished =====")
 
 
 if __name__ == "__main__":
