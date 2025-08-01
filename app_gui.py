@@ -1,19 +1,12 @@
-import asyncio
 import os
 
-import aiohttp
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 from fireflyiii_enricher_core.firefly_client import FireflyClient
 
 import log_db  # moduł z load_matched_log
-from api import AllegroApiClient
-from get_order_result import SimplifiedPayment
-from processor_gui import (
-    TransactionProcessorGUI,
-    match_transactions,
-)
+from processor_gui import TransactionProcessorGUI
 
 load_dotenv()
 
@@ -29,7 +22,9 @@ DESCRIPTION_FILTER = "allegro"
 # Inicjalizacja
 if "firefly" not in st.session_state:
     st.session_state["firefly"] = FireflyClient(FIREFLY_URL, FIREFLY_TOKEN)
-    st.session_state["processor"] = TransactionProcessorGUI(st.session_state["firefly"], TAG)
+    st.session_state["processor"] = TransactionProcessorGUI(
+        st.session_state["firefly"], TAG
+    )
     st.session_state["firefly_tx"] = []
     st.session_state["matches"] = []
 
@@ -42,20 +37,25 @@ with st.sidebar:
 # 1) Pobranie Firefly
 st.subheader("📥 Krok 1: Pobierz z Firefly")
 if st.button("Pobierz transakcje"):
-    st.session_state["firefly_tx"] = st.session_state["processor"].fetch_unmatched_transactions(
-        DESCRIPTION_FILTER, exact_match=False
-    )
+    st.session_state["firefly_tx"] = st.session_state[
+        "processor"
+    ].fetch_unmatched_transactions(DESCRIPTION_FILTER, exact_match=False)
     st.success("Transakcje pobrane")
-    df = pd.DataFrame([{
-        "ID": tx.tx.id,
-        "Data": tx.tx.date,
-        "Kwota": tx.tx.amount,
-        "Opis": tx.tx.description,
-        "Notes": tx.tx.notes,
-        "Matches": len(tx.matches)
-    } for tx in st.session_state["firefly_tx"]])
+    df = pd.DataFrame(
+        [
+            {
+                "ID": tx.tx.id,
+                "Data": tx.tx.date,
+                "Kwota": tx.tx.amount,
+                "Opis": tx.tx.description,
+                "Notes": tx.tx.notes,
+                "Matches": len(tx.matches),
+            }
+            for tx in st.session_state["firefly_tx"]
+        ]
+    )
 
-    dataframe = st.table(df)  # , use_container_width=True, selection_mode="multi-row", on_select="rerun",key="ID")
+    dataframe = st.table(df)
 
 # 2) Filtrowanie lokalne
 filtered = []

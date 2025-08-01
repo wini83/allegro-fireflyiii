@@ -1,10 +1,9 @@
 """main module"""
 
-import asyncio
 import logging
 import os
 
-import aiohttp  # type: ignore[import]
+import requests  # type: ignore[import]
 from dotenv import load_dotenv  # type: ignore[import]
 from fireflyiii_enricher_core.firefly_client import FireflyClient
 
@@ -30,16 +29,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def main():
+def main() -> None:
     """Run simple CLI example."""
     print("=== Allegro CLI ===")
     firefly = FireflyClient(FIREFLY_URL, TOKEN)
     qx_session_id = QXLSESSID
-    async with aiohttp.ClientSession() as session:
+    with requests.Session() as session:
         client = AllegroApiClient(session=session, cookie=qx_session_id)
-        order_result = await client.get_orders()
+        order_result = client.get_orders()
         payments_simplified = SimplifiedPayment.from_payments(order_result.payments)
         processor = TransactionProcessor(firefly, payments_simplified, "allegro_done")
         processor.process(DESCRIPTION_FILTER, exact_match=False)
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

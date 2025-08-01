@@ -1,11 +1,9 @@
 """Allegro REST API helper module."""
 
-import asyncio
 import logging
 from typing import Any
 
-import aiohttp  # type: ignore[import]
-import async_timeout  # type: ignore[import]
+import requests  # type: ignore[import]
 
 from const import ALLEGRO_API_URL
 from get_order_result import GetOrdersResult
@@ -20,8 +18,8 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 class AllegroApiClient:
     """Simplified Allegro API client."""
 
-    def __init__(self, cookie: str, session: aiohttp.ClientSession) -> None:
-        """Sample API Client."""
+    def __init__(self, cookie: str, session: requests.Session) -> None:
+        """Create client bound to existing :class:`requests.Session`."""
         self._cookie = cookie
         self._api_wrapper = ApiWrapper(session)
 
@@ -33,19 +31,19 @@ class AllegroApiClient:
             "Referer": "https://allegro.pl/",
         }
 
-    async def get_orders(self) -> GetOrdersResult:
-        """Get orders from api"""
+    def get_orders(self) -> GetOrdersResult:
+        """Get orders from API."""
         headers = self.get_standard_header(3)
-        get_orders_response = await self._api_wrapper.get(
+        get_orders_response = self._api_wrapper.get(
             f"{ALLEGRO_API_URL}/myorder-api/myorders?limit=25",
             headers=headers,
         )
         return GetOrdersResult(get_orders_response)
 
-    async def get_user_info(self) -> GetUserInfoResult:
-        """Get info about current user"""
+    def get_user_info(self) -> GetUserInfoResult:
+        """Get info about current user."""
         headers = self.get_standard_header(2)
-        get_orders_response = await self._api_wrapper.get(
+        get_orders_response = self._api_wrapper.get(
             f"{ALLEGRO_API_URL}/users",
             headers=headers,
         )
@@ -55,16 +53,16 @@ class AllegroApiClient:
 class ApiWrapper:
     """HTTP request helper."""
 
-    def __init__(self, session: aiohttp.ClientSession):
+    def __init__(self, session: requests.Session) -> None:
         self._session = session
 
-    async def get(
+    def get(
         self, url: str, headers: dict | None = None, auth: Any | None = None
     ) -> Any:
         """Run HTTP GET request."""
-        return await self.request("GET", url, headers=headers, auth=auth)
+        return self.request("GET", url, headers=headers, auth=auth)
 
-    async def post(
+    def post(
         self,
         url: str,
         data: Any | None = None,
@@ -72,9 +70,9 @@ class ApiWrapper:
         auth: Any | None = None,
     ) -> Any:
         """Run HTTP POST request."""
-        return await self.request("POST", url, data=data, headers=headers, auth=auth)
+        return self.request("POST", url, data=data, headers=headers, auth=auth)
 
-    async def request(
+    def request(
         self,
         method: str,
         url: str,
@@ -85,17 +83,18 @@ class ApiWrapper:
         data = request_kwargs.pop("data", None)
         auth = request_kwargs.pop("auth", None)
         try:
-            async with async_timeout.timeout(TIMEOUT):
-                async with self._session.request(
-                    method,
-                    url,
-                    headers=headers,
-                    data=data,
-                    auth=auth,
-                    **request_kwargs,
-                ) as response:
-                    return await response.json()
-        except asyncio.TimeoutError as exc:
+            response = self._session.request(
+                method,
+                url,
+                headers=headers,
+                data=data,
+                auth=auth,
+                timeout=TIMEOUT,
+                **request_kwargs,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.Timeout as exc:
             _LOGGER.error(
                 "Timeout error fetching information from %s - %s",
                 url,
