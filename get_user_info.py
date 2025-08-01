@@ -6,7 +6,7 @@ class GetUserInfoResult:
 
     def __init__(self, items: dict) -> None:
         """Init method"""
-        self._login:str = items["accounts"]["allegro"]["login"]
+        self._login: str = items["accounts"]["allegro"]["login"]
 
     @property
     def get_login(self) -> str:

@@ -18,7 +18,7 @@ def short_id(id_str: str, length: int = 8) -> str:
 class SimplifiedPayment(SimplifiedItem):
     details: str
 
-    def compare(self, other:SimplifiedItem) -> bool:
+    def compare(self, other: SimplifiedItem) -> bool:
         if not super().compare_amount(other.amount):
             return False
         latest_acceptable_date = self.date + timedelta(days=6)
@@ -117,7 +117,7 @@ class Offer:
         clean = re.sub(r"[^\w\s\-]", "", self.title or "", flags=re.UNICODE)
 
         words = clean.split()
-        result:List[str] = []
+        result: List[str] = []
         total_length = 0
 
         for word in words:
