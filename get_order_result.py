@@ -4,10 +4,17 @@ import hashlib
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import List
+from datetime import date, datetime, timedelta, timezone
+from typing import Any, List
 
-from fireflyiii_enricher_core.firefly_client import SimplifiedItem
+
+@dataclass()
+class SimplifiedItem:
+    date: datetime | date
+    amount: float
+
+    def compare_amount(self, amount: float) -> bool:
+        return self.amount == amount
 
 
 def short_id(id_str: str, length: int = 8) -> str:
@@ -40,7 +47,7 @@ class SimplifiedPayment(SimplifiedItem):
 class GetOrdersResult:
     """Result of get_orders method"""
 
-    def __init__(self, items: dict) -> None:
+    def __init__(self, items: dict[str, Any]) -> None:
         """Init method"""
         self.orders: List[Order] = []
         for group in items["orderGroups"]:
@@ -55,7 +62,7 @@ class GetOrdersResult:
 class Order:
     """Single order item"""
 
-    def __init__(self, order_id: str, items: dict) -> None:
+    def __init__(self, order_id: str, items: dict[str, Any]) -> None:
         """Init method"""
         self.order_id = order_id
         self.seller = items["seller"]["login"]
@@ -95,7 +102,7 @@ class Offer:
     image_url: str
 
     @staticmethod
-    def from_dict(item: dict) -> "Offer":
+    def from_dict(item: dict[str, Any]) -> "Offer":
         """Create :class:`Offer` from API response ``item``."""
         return Offer(
             item["id"],

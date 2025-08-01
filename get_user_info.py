@@ -1,10 +1,12 @@
 """Data structures for the ``get_user_info`` call."""
 
+from typing import Any
+
 
 class GetUserInfoResult:
     """Result of get_orders method"""
 
-    def __init__(self, items: dict) -> None:
+    def __init__(self, items: dict[str, Any]) -> None:
         """Init method"""
         self._login: str = items["accounts"]["allegro"]["login"]
 
