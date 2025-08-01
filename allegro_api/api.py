@@ -5,9 +5,9 @@ from typing import Any
 
 import requests  # type: ignore[import]
 
-from const import ALLEGRO_API_URL
-from get_order_result import GetOrdersResult
-from get_user_info import GetUserInfoResult
+from allegro_api.const import ALLEGRO_API_URL
+from allegro_api.get_order_result import GetOrdersResult
+from allegro_api.get_user_info import GetUserInfoResult
 
 TIMEOUT = 10
 

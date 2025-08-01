@@ -6,8 +6,8 @@ from fireflyiii_enricher_core.firefly_client import FireflyClient
 from loguru import logger
 
 import log_db
-from api import AllegroApiClient
-from get_order_result import SimplifiedPayment
+from allegro_api.api import AllegroApiClient
+from allegro_api.get_order_result import SimplifiedPayment
 from processor_gui import TransactionProcessorGUI, TxMatchResult, match_transactions
 
 # ---------------------------------------------------

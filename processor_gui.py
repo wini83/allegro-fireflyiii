@@ -11,7 +11,7 @@ from fireflyiii_enricher_core.firefly_client import (
 )
 from fireflyiii_enricher_core.matcher import TransactionMatcher
 
-from get_order_result import SimplifiedPayment
+from allegro_api.get_order_result import SimplifiedPayment
 
 
 @dataclass
