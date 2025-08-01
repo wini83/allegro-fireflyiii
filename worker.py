@@ -1,16 +1,14 @@
-import asyncio
 import os
 
-import aiohttp
+import requests  # type: ignore[import]
 from dotenv import load_dotenv
 from fireflyiii_enricher_core.firefly_client import FireflyClient
-
 from loguru import logger
 
 import log_db
 from api import AllegroApiClient
 from get_order_result import SimplifiedPayment
-from processor_gui import TransactionProcessorGUI, match_transactions, TxMatchResult
+from processor_gui import TransactionProcessorGUI, TxMatchResult, match_transactions
 
 # ---------------------------------------------------
 # Configure logging with Loguru
@@ -22,12 +20,17 @@ logger.add(
     rotation="10 MB",
     retention="10 days",
     compression="zip",
-    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{module}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+    format=(
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+        "<level>{level: <8}</level> | "
+        "<cyan>{module}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+        "<level>{message}</level>"
+    ),
 )
 logger.add(
     sink=lambda msg: print(msg, end=""),
     level="INFO",
-    format="{time:HH:mm:ss} | {level} | {message}"
+    format="{time:HH:mm:ss} | {level} | {message}",
 )
 # ---------------------------------------------------
 # Environment and constants
@@ -36,10 +39,11 @@ load_dotenv()
 TAG = "allegro_done"
 DESCRIPTION_FILTER = "allegro"
 
+
 # ---------------------------------------------------
 # Main workflow
 # ---------------------------------------------------
-async def main():
+def main() -> None:
     logger.info("===== Worker started =====")
 
     logger.info("Initializing Log_db")
@@ -47,21 +51,21 @@ async def main():
 
     # Initialize Firefly III client
     logger.info("Initializing FireflyClient")
-    ff = FireflyClient(
-        os.getenv("FIREFLY_URL"),
-        os.getenv("FIREFLY_TOKEN"))
+    ff = FireflyClient(os.getenv("FIREFLY_URL"), os.getenv("FIREFLY_TOKEN"))
 
     # Fetch Firefly III transactions
     logger.info("Fetching transactions from Firefly III")
     processor = TransactionProcessorGUI(ff, TAG)
-    transactions = processor.fetch_unmatched_transactions(DESCRIPTION_FILTER, exact_match=False)
+    transactions = processor.fetch_unmatched_transactions(
+        DESCRIPTION_FILTER, exact_match=False
+    )
     logger.debug(f"Fetched {len(transactions)} transactions from Firefly III")
 
     # Fetch Allegro payments
     logger.info("Fetching payments from Allegro")
-    async with aiohttp.ClientSession() as session:
+    with requests.Session() as session:
         allegro = AllegroApiClient(os.getenv("QXLSESSID"), session)
-        orders_data = await allegro.get_orders()
+        orders_data = allegro.get_orders()
     payments = SimplifiedPayment.from_payments(orders_data.payments)
     logger.debug(f"Fetched {len(payments)} orders/payments from Allegro")
 
@@ -73,7 +77,9 @@ async def main():
     auto_applied = 0
     for txr in matched:
         applied = False
-        logger.info(f"Processing transaction ID {txr.tx.id} - matches: {len(txr.matches)} ")
+        logger.info(
+            f"Processing transaction ID {txr.tx.id} - matches: {len(txr.matches)} "
+        )
         if len(txr.matches) == 1:
             try:
                 logger.info(f"Applying match for transaction ID {txr.tx.id}")
@@ -85,7 +91,7 @@ async def main():
                 logger.error(f"Failed to processed transaction {txr.tx.id}: {e}")
                 applied = False
         else:
-            logger.info(f" Conditions not met skipping")
+            logger.info("Conditions not met skipping")
 
         details_list = [m.details for m in txr.matches]
         log_db.log_matched_transaction(txr, len(txr.matches), applied, details_list)
@@ -94,5 +100,6 @@ async def main():
         logger.info(f"Automatically applied to {auto_applied} transactions")
         logger.info("===== Worker finished =====")
 
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

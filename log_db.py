@@ -1,9 +1,10 @@
-import sqlite3
 import json
+import sqlite3
 from datetime import datetime
 from typing import Any
 
 DB_FILE = "log.db"
+
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -23,11 +24,15 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 def log_matched_transaction(tx, match_count: int, applied: bool, details: Any):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
-        "INSERT INTO matched_tx (tx_id, tx_date, tx_amount, matched_count, applied, match_date, details) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            "INSERT INTO matched_tx (tx_id, tx_date, tx_amount, matched_count, "
+            "applied, match_date, details) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        ),
         (
             tx.tx.id,
             tx.tx.date.isoformat(),
@@ -36,10 +41,11 @@ def log_matched_transaction(tx, match_count: int, applied: bool, details: Any):
             1 if applied else 0,
             datetime.now().isoformat(),
             json.dumps(details),
-        )
+        ),
     )
     conn.commit()
     conn.close()
+
 
 def load_matched_log(limit: int = 50):
     try:
@@ -47,10 +53,11 @@ def load_matched_log(limit: int = 50):
         df = None
         try:
             import pandas as pd
+
             df = pd.read_sql(
                 "SELECT * FROM matched_tx ORDER BY match_date DESC LIMIT ?",
                 conn,
-                params=(limit,)
+                params=(limit,),
             )
         finally:
             conn.close()
