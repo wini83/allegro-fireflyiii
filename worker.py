@@ -59,7 +59,7 @@ def main() -> None:
     transactions = processor.fetch_unmatched_transactions(
         DESCRIPTION_FILTER, exact_match=False
     )
-    logger.debug(f"Fetched {len(transactions)} transactions from Firefly III")
+    logger.info(f"Fetched {len(transactions)} transactions from Firefly III")
 
     # Fetch Allegro payments
     logger.info("Fetching payments from Allegro")
@@ -96,9 +96,9 @@ def main() -> None:
         details_list = [m.details for m in txr.matches]
         log_db.log_matched_transaction(txr, len(txr.matches), applied, details_list)
 
-        # Summary
-        logger.info(f"Automatically applied to {auto_applied} transactions")
-        logger.info("===== Worker finished =====")
+    # Summary
+    logger.info(f"Automatically applied to {auto_applied} transactions")
+    logger.info("===== Worker finished =====")
 
 
 if __name__ == "__main__":
