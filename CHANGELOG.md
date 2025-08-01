@@ -34,6 +34,12 @@
 
 - linting
 
+## v0.7.0 (2025-08-01)
+
+### Feat
+
+- **legacy-preocessor**: delete
+
 ## v0.6.1 (2025-08-01)
 
 ### Fix
