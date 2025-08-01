@@ -34,6 +34,12 @@
 
 - linting
 
+## v0.7.1 (2025-08-01)
+
+### Refactor
+
+- **move-API-modules-into-allegro_api-package**: - created new package `allegro_api` and moved:     • `api.py`     • `const.py`     • `get_order_result.py`     • `get_user_info.py`   - Updated imports and references in:     • `processor_gui.py`     • `worker.py`
+
 ## v0.7.0 (2025-08-01)
 
 ### Feat
