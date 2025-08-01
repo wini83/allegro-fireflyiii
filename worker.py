@@ -1,6 +1,6 @@
 import os
 
-import requests  # type: ignore[import]
+import requests  # type: ignore[import-untyped]
 from dotenv import load_dotenv
 from fireflyiii_enricher_core.firefly_client import FireflyClient
 from loguru import logger
@@ -64,7 +64,9 @@ def main() -> None:
     # Fetch Allegro payments
     logger.info("Fetching payments from Allegro")
     with requests.Session() as session:
-        allegro = AllegroApiClient(os.getenv("QXLSESSID"), session)
+        cookie = os.getenv("QXLSESSID")
+        assert cookie is not None
+        allegro = AllegroApiClient(cookie, session)
         orders_data = allegro.get_orders()
     payments = SimplifiedPayment.from_payments(orders_data.payments)
     logger.info(f"Fetched {len(payments)} orders/payments from Allegro")
