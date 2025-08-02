@@ -16,17 +16,17 @@ def short_id(id_str: str, length: int = 8) -> str:
 
 
 @dataclass()
-class SimplifiedPayment(SimplifiedItem):
+class SimplifiedPayment(SimplifiedItem):  # type: ignore[misc]
     """Simplified representation of an Allegro payment."""
 
     details: str
 
     def compare(self, other: SimplifiedItem) -> bool:
         """Check whether ``other`` matches this payment within tolerance."""
-        if not super().compare_amount(other.amount):
+        if not bool(super().compare_amount(other.amount)):
             return False
         latest_acceptable_date = self.date + timedelta(days=6)
-        return self.date <= other.date <= latest_acceptable_date
+        return bool(self.date <= other.date <= latest_acceptable_date)
 
     @classmethod
     def from_payments(cls, payments: List["Payment"]) -> List["SimplifiedPayment"]:

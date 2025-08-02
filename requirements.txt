@@ -1,0 +1,6 @@
+fireflyiii-enricher-core
+loguru
+pandas
+python-dotenv
+requests
+streamlit
