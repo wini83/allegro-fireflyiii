@@ -11,14 +11,18 @@ from fireflyiii_enricher_core.firefly_client import SimplifiedItem
 
 
 def short_id(id_str: str, length: int = 8) -> str:
+    """Return a short, deterministic hash of ``id_str``."""
     return hashlib.sha1(id_str.encode()).hexdigest()[:length]
 
 
 @dataclass()
 class SimplifiedPayment(SimplifiedItem):
+    """Simplified representation of an Allegro payment."""
+
     details: str
 
     def compare(self, other: SimplifiedItem) -> bool:
+        """Check whether ``other`` matches this payment within tolerance."""
         if not super().compare_amount(other.amount):
             return False
         latest_acceptable_date = self.date + timedelta(days=6)
@@ -26,6 +30,7 @@ class SimplifiedPayment(SimplifiedItem):
 
     @classmethod
     def from_payments(cls, payments: List["Payment"]) -> List["SimplifiedPayment"]:
+        """Convert Allegro payment objects into simplified payments."""
         result: List["SimplifiedPayment"] = []
         for payment in payments:
             date = payment.orders[0].order_date.date()
@@ -37,7 +42,7 @@ class SimplifiedPayment(SimplifiedItem):
         return result
 
 
-class GetOrdersResult:
+class GetOrdersResult:  # pylint: disable=too-few-public-methods
     """Result of get_orders method"""
 
     def __init__(self, items: dict[str, Any]) -> None:
@@ -56,7 +61,7 @@ class Order:
     """Single order item"""
 
     def __init__(self, order_id: str, items: dict[str, Any]) -> None:
-        """Init method"""
+        """Initialize order from API response ``items``."""
         self.order_id = order_id
         self.seller = items["seller"]["login"]
         self.offers = [Offer.from_dict(o) for o in items["offers"]]
@@ -66,6 +71,7 @@ class Order:
         self.payment_id = items["payment"]["id"]
 
     def print_offers(self) -> str:
+        """Return human readable representation of ordered offers."""
         return "\n".join(
             f"{offer.get_simplified_title()} ({offer.unit_price} "
             f"{offer.price_currency})"
@@ -74,7 +80,7 @@ class Order:
 
     @property
     def order_date(self) -> datetime:
-        # Usuń 'Z' i dodaj strefę czasową UTC
+        """Return order date as ``datetime`` with timezone awareness."""
         if self._order_date.endswith("Z"):
             return datetime.fromisoformat(self._order_date[:-1]).replace(
                 tzinfo=timezone.utc
@@ -108,6 +114,8 @@ class Offer:
         )
 
     def get_simplified_title(self) -> str:
+        """Create shortened title suitable for tagging."""
+
         def format_word(title_word: str) -> str:
             return "-".join(
                 w.capitalize() if len(w) > 2 else w.lower()
@@ -135,16 +143,20 @@ class Offer:
 
 @dataclass()
 class Payment:
+    """Group of orders paid together."""
+
     payment_id: str
     orders: List["Order"]
     tolerance: float = 0.01
 
     @property
     def sum_total_cost(self) -> float:
+        """Return the total cost of all orders in the payment."""
         return sum(float(order.total_cost["amount"]) for order in self.orders)
 
     @property
     def amount(self) -> float:
+        """Return paid amount value."""
         if not self.orders:
             return 0.0
         return float(self.orders[0].payment_amount["amount"])
@@ -177,3 +189,4 @@ class Payment:
 
         payments = [cls(payment_id=pid, orders=group) for pid, group in grouped.items()]
         return payments
+

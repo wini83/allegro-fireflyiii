@@ -1,7 +1,11 @@
+"""Utility functions for persisting and retrieving matching logs in SQLite."""
+
 import json
 import sqlite3
 from datetime import datetime
 from typing import Any
+
+import pandas as pd
 
 from processor_gui import TxMatchResult
 
@@ -9,6 +13,7 @@ DB_FILE = "log.db"
 
 
 def init_db() -> None:
+    """Create the SQLite database and ``matched_tx`` table if they do not exist."""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -30,6 +35,7 @@ def init_db() -> None:
 def log_matched_transaction(
     tx: TxMatchResult, match_count: int, applied: bool, details: Any
 ) -> None:
+    """Persist information about a processed transaction in the log database."""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -52,12 +58,11 @@ def log_matched_transaction(
 
 
 def load_matched_log(limit: int = 50) -> Any:
+    """Return recent matching records as a pandas ``DataFrame``."""
     try:
         conn = sqlite3.connect(DB_FILE)
         df = None
         try:
-            import pandas as pd
-
             df = pd.read_sql(
                 "SELECT * FROM matched_tx ORDER BY match_date DESC LIMIT ?",
                 conn,

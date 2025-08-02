@@ -1,3 +1,5 @@
+"""Streamlit user interface for matching Allegro payments with Firefly III."""
+
 import os
 
 import pandas as pd
