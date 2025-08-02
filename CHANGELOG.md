@@ -1,3 +1,9 @@
+## v0.8.1 (2025-08-02)
+
+### Fix
+
+- **doekrfile**: add git to container
+
 ## v0.8.0 (2025-08-02)
 
 ### Feat
