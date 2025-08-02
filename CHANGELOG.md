@@ -1,39 +1,3 @@
-## v{version} (2025-07-20)
-
-### Feat
-
-- gui w/ streamlit
-
-## v{version} (2025-07-20)
-
-### Feat
-
-- gui w/ streamlit
-
-### Fix
-
-- linting
-
-## v{version} (2025-07-20)
-
-### Feat
-
-- gui w/ streamlit
-
-### Fix
-
-- linting
-
-## v{version} (2025-07-20)
-
-### Feat
-
-- gui w/ streamlit
-
-### Fix
-
-- linting
-
 ## v0.7.3 (2025-08-02)
 
 ### Fix
@@ -44,7 +8,7 @@
 
 ### Fix
 
-- **verious-modules**: fixing mypy issues
+- **various-modules**: fixing mypy issues
 
 ## v0.7.1 (2025-08-01)
 
@@ -62,11 +26,11 @@
 
 ### Fix
 
-- **auto**: experimets
+- **auto**: experiments
 
 ### Refactor
 
-- **worker**: loging imprevements
+- **worker**: loging improvements
 - switch to sync API
 
 ## v0.6.0 (2025-07-29)

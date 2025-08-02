@@ -1,4 +1,4 @@
-fireflyiii-enricher-core
+fireflyiii_enricher_core @ git+https://github.com/wini83/fireflyiii-enricher-core.git@main
 loguru
 pandas
 python-dotenv
