@@ -1,3 +1,5 @@
+"""Background worker for matching Allegro payments to Firefly III transactions."""
+
 import os
 
 import requests  # type: ignore[import-untyped]
@@ -48,6 +50,7 @@ FIREFLY_TOKEN = os.environ["FIREFLY_TOKEN"]
 # Main workflow
 # ---------------------------------------------------
 def main() -> None:
+    """Entry point for the worker script."""
     logger.info("===== Worker started =====")
 
     logger.info("Initializing Log_db")
