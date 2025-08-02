@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 from allegro_api.const import ALLEGRO_API_URL
 from allegro_api.get_order_result import GetOrdersResult
