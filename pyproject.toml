@@ -1,11 +1,11 @@
 [project]
 name = "allegro-fireflyiii"
-version = "0.7.2"
+version = "0.7.3"
 description = "Sample project with cz bump"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.7.2"
+version = "0.7.3"
 tag_format = "v$version"
 version_files = ["pyproject.toml"]
 update_changelog_on_bump = true

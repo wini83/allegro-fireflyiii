@@ -34,6 +34,12 @@
 
 - linting
 
+## v0.7.3 (2025-08-02)
+
+### Fix
+
+- add docstrings and tidy imports
+
 ## v0.7.2 (2025-08-02)
 
 ### Fix
