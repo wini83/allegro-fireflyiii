@@ -34,6 +34,12 @@
 
 - linting
 
+## v0.7.2 (2025-08-02)
+
+### Fix
+
+- **verious-modules**: fixing mypy issues
+
 ## v0.7.1 (2025-08-01)
 
 ### Refactor
