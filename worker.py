@@ -2,7 +2,7 @@
 
 import os
 
-import requests  # type: ignore[import-untyped]
+import requests
 from dotenv import load_dotenv
 from fireflyiii_enricher_core.firefly_client import FireflyClient
 from loguru import logger

@@ -41,7 +41,6 @@ def match_transactions(
     return firefly_tx
 
 
-
 class TransactionProcessorGUI:
     """High level logic for fetching and updating Firefly transactions."""
 

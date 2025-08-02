@@ -189,4 +189,3 @@ class Payment:
 
         payments = [cls(payment_id=pid, orders=group) for pid, group in grouped.items()]
         return payments
-
