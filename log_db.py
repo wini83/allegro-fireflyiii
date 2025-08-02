@@ -3,10 +3,12 @@ import sqlite3
 from datetime import datetime
 from typing import Any
 
+from processor_gui import TxMatchResult
+
 DB_FILE = "log.db"
 
 
-def init_db():
+def init_db() -> None:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -25,7 +27,9 @@ def init_db():
     conn.close()
 
 
-def log_matched_transaction(tx, match_count: int, applied: bool, details: Any):
+def log_matched_transaction(
+    tx: TxMatchResult, match_count: int, applied: bool, details: Any
+) -> None:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -47,7 +51,7 @@ def log_matched_transaction(tx, match_count: int, applied: bool, details: Any):
     conn.close()
 
 
-def load_matched_log(limit: int = 50):
+def load_matched_log(limit: int = 50) -> Any:
     try:
         conn = sqlite3.connect(DB_FILE)
         df = None
@@ -62,5 +66,5 @@ def load_matched_log(limit: int = 50):
         finally:
             conn.close()
         return df
-    except Exception:
+    except ValueError:
         return None

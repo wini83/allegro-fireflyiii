@@ -13,11 +13,12 @@ load_dotenv()
 st.set_page_config(layout="wide")
 st.title("📊 Allegro → Firefly III (GUI)")
 
-FIREFLY_URL = os.getenv("FIREFLY_URL")
-FIREFLY_TOKEN = os.getenv("FIREFLY_TOKEN")
-COOKIE = os.getenv("QXLSESSID")
-TAG = "allegro_done"
-DESCRIPTION_FILTER = "allegro"
+FIREFLY_URL = os.environ["FIREFLY_URL"]
+FIREFLY_TOKEN = os.environ["FIREFLY_TOKEN"]
+COOKIE = os.environ["QXLSESSID"]
+TAG = os.environ["TAG"]
+DESCRIPTION_FILTER = os.environ['DESCRIPTION_FILTER']
+ALLEGRO_COOKIE = os.environ["QXLSESSID"]
 
 # Inicjalizacja
 if "firefly" not in st.session_state:

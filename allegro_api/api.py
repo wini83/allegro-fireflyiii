@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-import requests  # type: ignore[import]
+import requests  # type: ignore[import-untyped]
 
 from allegro_api.const import ALLEGRO_API_URL
 from allegro_api.get_order_result import GetOrdersResult
@@ -57,7 +57,7 @@ class ApiWrapper:
         self._session = session
 
     def get(
-        self, url: str, headers: dict | None = None, auth: Any | None = None
+        self, url: str, headers: dict[str, str] | None = None, auth: Any | None = None
     ) -> Any:
         """Run HTTP GET request."""
         return self.request("GET", url, headers=headers, auth=auth)
@@ -66,7 +66,7 @@ class ApiWrapper:
         self,
         url: str,
         data: Any | None = None,
-        headers: dict | None = None,
+        headers: dict[str, str] | None = None,
         auth: Any | None = None,
     ) -> Any:
         """Run HTTP POST request."""

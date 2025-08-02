@@ -1,6 +1,6 @@
 import os
 
-import requests  # type: ignore[import]
+import requests  # type: ignore[import-untyped]
 from dotenv import load_dotenv
 from fireflyiii_enricher_core.firefly_client import FireflyClient
 from loguru import logger
@@ -36,8 +36,12 @@ logger.add(
 # Environment and constants
 # ---------------------------------------------------
 load_dotenv()
-TAG = "allegro_done"
-DESCRIPTION_FILTER = "allegro"
+
+TAG = os.environ["TAG"]
+DESCRIPTION_FILTER = os.environ['DESCRIPTION_FILTER']
+ALLEGRO_COOKIE = os.environ["QXLSESSID"]
+FIREFLY_URL = os.environ["FIREFLY_URL"]
+FIREFLY_TOKEN = os.environ["FIREFLY_TOKEN"]
 
 
 # ---------------------------------------------------
@@ -51,7 +55,7 @@ def main() -> None:
 
     # Initialize Firefly III client
     logger.info("Initializing FireflyClient")
-    ff = FireflyClient(os.getenv("FIREFLY_URL"), os.getenv("FIREFLY_TOKEN"))
+    ff = FireflyClient(FIREFLY_URL, FIREFLY_TOKEN)
 
     # Fetch Firefly III transactions
     logger.info("Fetching transactions from Firefly III")
@@ -64,7 +68,7 @@ def main() -> None:
     # Fetch Allegro payments
     logger.info("Fetching payments from Allegro")
     with requests.Session() as session:
-        allegro = AllegroApiClient(os.getenv("QXLSESSID"), session)
+        allegro = AllegroApiClient(ALLEGRO_COOKIE, session)
         orders_data = allegro.get_orders()
     payments = SimplifiedPayment.from_payments(orders_data.payments)
     logger.info(f"Fetched {len(payments)} orders/payments from Allegro")
